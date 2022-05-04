@@ -1,59 +1,85 @@
-## Files in Flask
+## Task-1: Creation of a Python backend application with Flask
 
 ### Overview
-- In this episode we will be seeing on how to upload files using Flask and how to send attachments using Flask.
-- To see the YouTube demonstration of this episode [click here.](https://youtu.be/Bj4cjo5R_6s)
+Erstellung eine Python Backend Applikation mit Flask. Das Ziel ist, das ein Mitarbeiter bei Pexon alle seine Zertifizierungen in einer kleinen WebApp speichern kann.
+dazu wird ein Backend und eine Datenbank heruntergeladen:
+- PyCharm Community Edition (Backend)
+- SQLite (Data Base) 
 
 | &emsp;&emsp;&emsp;Table of Contents |
 | --------------------------- |
 | 1. [**Creating the application**](#creating-our-application) |
-| 2. [**Uploading single file**](#uploading-single-file) |
+| 2. [**Uploading files**](#uploading-files) |
 | 3. [**Uploading multiple files**](#uploading-multiple-files) |
 | 4. [**Sending files as attachment**](#sending-files-as-attachment) |
 
 
-### Setting up the environment
-- Download this [Pipfile.lock](https://github.com/ASHIK11ab/Flask-Series/tree/files-in-flask/Pipfile.lock) and install the necessary dependencies by running
+### Setting up the environment projekt erstellen und Flask installieren
+- Flask installieren 
+  - wir geben unten in das terminal rein:  
 ```bash
-  > pipenv sync
+  > pip install flask
 ```
-- This will install the dependencies from Pipfile.lock
+- Flask wird installieret (Dauert einen kleinen moment) 
 
 ### Note:
-> - Since pipfile varies accross various operating systems. If you get into trouble installing the dependencies. Then,
-> - Manually install the dependencies by running
->  ```bash
->   > pipenv install Flask
->  ```
+> Beim wechseln in die Palmen Konsole bekommen wir pop up von der Windows defender firewall wir lassen den zugriffen. 
+> - Flask erstellt im localhost ein server, vielleicht auch nach außen dafür brauchen wir diese firewall ein und ausgänge    
 
 ### Step by Step Guide
 
 ### Creating our application
 
-1. First lets do a whole bunch of imports which are required. We will be using some imported functions later on in this episode.
+1. Flask importieren.
 ```python
-  import os
-  from flask import Flask, render_template, redirect, flash, request, send_from_directory
-  from werkzeug.utils import secure_filename
+  from flask import Flask, render_template, request, 
 ```
+- Flask: Micro web framework
 
-2. Now lets create our application and since we will be using <kbd>flash</kbd>, lets also set a <kbd>secret key</kbd> for our application.
+- render_template: wird verwendet, um eine Ausgabe aus einer Vorlagendatei basierend auf der Jinja2-Engine zu generieren, die sich im Vorlagenordner der Anwendung befindet.
+
+- request: ermöglicht es, Daten zu erhalten, die vom Client, z.B. einem Webbrowser, gesendet werden, damit Sie die Generierung der Antwort entsprechend haben können.
+  
+2. applikation erstellen 
 ```python
   app = Flask(__name__)
+```
+3. localhost starten (Hello World beispiel) 
+```python
+@app.route("/")
+def hellopexonian():
+    return "Hello Pexonian, trage hier deine Zertifizierungen ein! "
 
-  app.config['SECRET_KEY'] = '<your secret key goes here>'
+if __name__ == "__main__":
+    app.run(debug = True)
+```
+- App aktiviert, flask server gestartet.
+ - (debug = True)=> debug mode on: beim code_zeilen ändern und speichern lädt die seite automatisch neu.
+ 
+4. Input Feld
+```python
+  @app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        file = request.files['file']
+
+        upload = Upload(filename=file.filename, data=file.read())
+        return f'Uploaded: {file.filename}'
+    return render_template('index.html')
+  
 ```
 
-### Uploading single file
+### Uploading files
 
-3. Lets create a <kbd>/</kbd> route where we will return a <kbd>index.html</kbd> template.
+wir werden ein <kbd>index.html</kbd> Template verwenden, mit dem wir eine Datei hochladen können.  
 ```python
-  @app.route('/')
-  def index():
+  
     return render_template('index.html')
 ```
+1. uploading single file
 
-4. In the <kbd>index.html</kbd> lets create a <kbd>form</kbd> by which users can upload a file.
+- <kbd>index.html</kbd> Template
+
 ```html
   <!DOCTYPE html>
   <html lang="en">
@@ -65,8 +91,7 @@
   </head>
   <body>
     <div class="container">
-      <h1>Upload your files here</h1>
-      <p>Upload only png, jpg, jpeg, gif images only.</p>
+      <h1>Hello Pexonian, trage hier deine Zertifizierungen ein!</h1>
       <form action="/" method="post" enctype="multipart/form-data">
         <input type="file" name="file" required>
         <input type="submit" value="Upload">
@@ -75,112 +100,27 @@
   </body>
   </html>
 ```
-> - In order to allow the users to upload a file we should set the <kbd>enctype</kbd> attribute of the input filed to <kbd>"multipart/form-data"</kbd>.
 
-5. Now lets do some basic styling for the index page using a <kbd>style</kbd> tag.
-```html
-  <style>
-    .container {
-      width: 80%;
-      margin: 2rem auto;
-    }
+> Das obige Programm erstellt eine HTML-Datei 
+> =>definiert ein Dateiauswahlfeld und eine "Durchsuchen"-Schaltfläche für Datei-Uploads.
 
-    input {
-      display: block;
-      margin-bottom: 2rem;
-      font-size: 18px;
-    }
-
-    input[type="submit"] {
-      background-color: dodgerblue;
-      color: #fff;
-      padding: .8rem;
-      border-radius: 10px;
-    }
-
-    .error {
-      color: #ff0000;
-    }
-  </style>
-```
-
-6. Now we need to jump to our backend inorder to save the uploaded image.
-
-7. Before proceeding further, lets create a <kbd>images</kbd> directory inside of a <kbd>uploads</kbd> directory where all our uploaded images will be saved.
-
-8. Our directory structure should look like this.
-```
-  /
-  |___ templates/
-  |___ uploads/
-       |___ images/
-```
-
-9. Now lets create a <kbd>utils.py</kbd> file where we will be creating some utilitie functions, because i like to keep my application file <kbd>app.py</kbd> clean.
+9. ich habe eine <kbd>utils.py</kbd> file erstellt, in der wir einige Hilfsfunktionen erstellen werden, da ich meine  <kbd>app.py</kbd> file gerne sauber halten möchte
 
 10. In <kbd>utils.py</kbd><br>
-&nbsp;&nbsp;&nbsp;&nbsp;i. Lets create a variable called <kbd>ALLOWED_EXTENSIONS</kbd> which will be a list of extensions of files the user can upload.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ii. Lets also create a variable called <kbd>UPLOADS_FOLDER</kbd> which will be the path to where the uploaded images should be saved.
+- variable <kbd>ALLOWED_EXTENSIONS</kbd> : Dies ist eine Liste mit Dateierweiterungen, die der Benutzer verwenden kann. 
+- variable <kbd>UPLOADS_FOLDER</kbd> : Dies ist der Pfad, in dem die hochgeladenen dateien gespeichert werden sollen.
 ```python
-  ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
+  ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
 
-  UPLOADS_FOLDER = 'uploads/images/'
+  UPLOADS_FOLDER = 'uploads/file/'
 ```
 
-11. Now lets import everything from <kbd>utils.py</kbd> to our <kbd>app.py</kbd>
+ Importieren wir nun alles aus <kbd>utils.py</kbd> in unsere <kbd>app.py</kbd>
 ```python
   from utils import *
 ```
 
-12. Now set the <kbd>UPLOADS_FOLDER</kbd> as a configuration variable (not mandatory for convienience only).
-
-13. Now since the <kbd>/</kbd> route is going to be accepting a <kbd>POST</kbd> request, we need to specify the list of methods that the <kbd>/</kbd> route will accept.
-```python
-  @app.route('/', methods=["GET", "POST"])
-  def index():
-    if request.method == "GET":
-      return render_template('index.html')
-```
-> - If the request method was a <kbd>GET</kbd> method we simply return the <kbd>index.html</kbd>.
-
-14. Now we need to get the uploaded file in the backend. We can get the incoming file by using <kbd>request.files['\<name given in input field>']</kbd>.
-
-15. There are a bunch which will need to validate before saving the file.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;i. First we need to make sure that the <kbd>POST</kbd> request has a file part in it. If not, flash a message.
-```python
-  if not 'file' in request.files:
-    flash('No file part in request')
-    return redirect(request.url)
-```
-&emsp;&emsp;&emsp;&nbsp;ii. Now we need to get the file by using the <kbd>request.files</kbd>.
-```python
-  file = request.files.get('name')
-```
-&emsp;&emsp;&emsp;&nbsp;iii. Next, we need to make sure that the user did not do a empty upload. If so, flash a message.
-```python
-  if file.filename == '':
-    flash('No file uploaded')
-    return redirect(request.url)
-```
-&emsp;&emsp;&emsp;&nbsp;iv. Before saving the file we need the make sure that the file extension is in the list of valid extensions. Lets do this by creating a <kbd>file_valid(file)</kbd> function in <kbd>utils.py</kbd>.
-```python
-  def file_valid(file):
-    return '.' in file and \
-      file.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
-```
-&emsp;&emsp;&emsp;&nbsp;v. Now if the filename is valid we can save the file using the <kbd>save()</kbd> method in the file object. If not, flash a error.
-```python
-  if file_valid(file.filename):
-    filename = secure_filename(file.filename)
-    file.save(os.path.join(app.config['UPLOADS_FOLDER'], filename))
-  else:
-    flash('File type not supported')
-    return redirect(request.url)
-```
-> - The else block was not added in the YouTube video.
-> - The <kbd>secure_filename()</kbd> returns a secure name of the file which can be added to the file system in case if the filename contained was something like '../../../.bashrc'.
-
-16. Consolidating our <kbd>/</kbd> route should look like this now.
+16. Die Konsolidierung unserer <kbd>/</kbd>-Route sollte jetzt so aussehen.
 ```python
   @app.route('/', methods=["GET", "POST"])
   def index():
@@ -207,50 +147,10 @@
     return "File uploaded successfully"
 ```
 
-17. While processing the files we flashed a lot of messages. Now lets gets the flashed messages in the index page using <kbd>Jinja</kbd>.
-```jinja
-  {% with messages = get_flashed_messages() %}
-    {% for msg in messages %}
-      <p class="error">{{ msg }}</p>
-    {% endfor %}
-  {% endwith %}
-```
-> Add this <kbd>with</kbd> block inside the <kbd>container</kbd> <kbd>div</kbd>.
 
-18. We have successfully completed on uploading and processing a single uploaded file.
+18. Wir haben erfolgreich das Hochladen und Verarbeiten einer einzelnen hochgeladenen Datei abgeschlossen.
 
-### Uploading multiple files
-
-19. Now, lets see on how to upload and process multiple files in Flask.
-
-20. First inorder to allow the user to upload multiple files add the <kbd>multiple</kbd> attribute to the <kbd>input</kbd> filed in index.html.
-```html
-  <input type="file" name="file" multiple required>
-```
-
-21. Now, we just need to refactor a little bit in the backend inorder to process and save multiple files.<br>
-&nbsp;&nbsp;i. First inorder to get all of the uploaded files we use the <kbd>request.files.getlist()</kbd> method.
-```python
-  files = request.files.getlist('file')
-```
-&emsp;&emsp;&emsp;&nbsp;ii. Now we need to iterate through each file and if the files are valid we save them.
-```python
-  for file in files:
-    if file.filename == '':
-      flash('No file uploaded')
-      return redirect(request.url)
-
-    if file_valid(file.filename):
-      filename = secure_filename(file.filename)
-      file.save(os.path.join(app.config['UPLOADS_FOLDER'], filename))
-    else:
-      flash('File type not supported')
-      return redirect(request.url)
-
-  return "Files uploaded successfully"
-```
-
-22. Consolidating for uploading multiple files our <kbd>/</kbd> route should look like this now.
+22. Zusammenfassend für das uploading mehrerer Dateien sollte unsere <kbd>/</kbd>-Route jetzt so aussehen.
 ```python
   @app.route('/', methods=["GET", "POST"])
   def index():
@@ -277,6 +177,8 @@
         
     return "Files uploaded successfully"
 ```
+### Uploading multiple files
+
 
 ### Sending files as attachment
 
