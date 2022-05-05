@@ -10,8 +10,7 @@ dazu wird ein Backend und eine Datenbank heruntergeladen:
 | --------------------------- |
 | 1. [**Creating the application**](#creating-our-application) |
 | 2. [**Uploading files**](#uploading-files) |
-| 3. [**Uploading multiple files**](#uploading-multiple-files) |
-| 4. [**Sending files as attachment**](#sending-files-as-attachment) |
+| 3. [**Connect SQLite database**](#connect-sqlite-database) |
 
 
 ### Setting up the environment projekt erstellen und Flask installieren
@@ -32,14 +31,18 @@ dazu wird ein Backend und eine Datenbank heruntergeladen:
 
 1. Flask importieren.
 ```python
-  from flask import Flask, render_template, request, 
+  from flask import Flask, render_template, request, redirect,
 ```
-- Flask: Micro web framework
+- Flask: Micro web framework.
 
 - render_template: wird verwendet, um eine Ausgabe aus einer Vorlagendatei basierend auf der Jinja2-Engine zu generieren, die sich im Vorlagenordner der Anwendung befindet.
 
 - request: ermöglicht es, Daten zu erhalten, die vom Client, z.B. einem Webbrowser, gesendet werden, damit Sie die Generierung der Antwort entsprechend haben können.
-  
+
+- redirect: Funktion ermöglicht es uns, einen Benutzer auf die URL unserer Wahl umzuleiten.
+
+-  flash: Methode wird verwendet, um informative Nachrichten in der flask zu erzeugen. Es erstellt eine Nachricht in einer Ansicht und gibt sie an eine als nächstes aufgerufene Vorlagenansichtsfunktion weiter.
+
 2. applikation erstellen 
 ```python
   app = Flask(__name__)
@@ -104,53 +107,7 @@ wir werden ein <kbd>index.html</kbd> Template verwenden, mit dem wir eine Datei 
 > Das obige Programm erstellt eine HTML-Datei 
 > =>definiert ein Dateiauswahlfeld und eine "Durchsuchen"-Schaltfläche für Datei-Uploads.
 
-9. ich habe eine <kbd>utils.py</kbd> file erstellt, in der wir einige Hilfsfunktionen erstellen werden, da ich meine  <kbd>app.py</kbd> file gerne sauber halten möchte
-
-10. In <kbd>utils.py</kbd><br>
-- variable <kbd>ALLOWED_EXTENSIONS</kbd> : Dies ist eine Liste mit Dateierweiterungen, die der Benutzer verwenden kann. 
-- variable <kbd>UPLOADS_FOLDER</kbd> : Dies ist der Pfad, in dem die hochgeladenen dateien gespeichert werden sollen.
-```python
-  ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx']
-
-  UPLOADS_FOLDER = 'uploads/file/'
-```
-
- Importieren wir nun alles aus <kbd>utils.py</kbd> in unsere <kbd>app.py</kbd>
-```python
-  from utils import *
-```
-
-16. Die Konsolidierung unserer <kbd>/</kbd>-Route sollte jetzt so aussehen.
-```python
-  @app.route('/', methods=["GET", "POST"])
-  def index():
-    if request.method == "GET":
-      return render_template('index.html')
-
-    if not 'file' in request.files:
-      flash('No file part in request')
-      return redirect(request.url)
-
-    file = request.files.get('file')
-
-    if file.filename == '':
-      flash('No file uploaded')
-      return redirect(request.url)
-
-    if file_valid(file.filename):
-      filename = secure_filename(file.filename)
-      file.save(os.path.join(app.config['UPLOADS_FOLDER'], filename))
-    else:
-      flash('File type not supported')
-      return redirect(request.url)
-    
-    return "File uploaded successfully"
-```
-
-
-18. Wir haben erfolgreich das Hochladen und Verarbeiten einer einzelnen hochgeladenen Datei abgeschlossen.
-
-22. Zusammenfassend für das uploading mehrerer Dateien sollte unsere <kbd>/</kbd>-Route jetzt so aussehen.
+22. Zusammenfassend für das uploading mehrerer Dateien sollte unsere <kbd>/</kbd>-Route so aussehen.
 ```python
   @app.route('/', methods=["GET", "POST"])
   def index():
@@ -177,10 +134,9 @@ wir werden ein <kbd>index.html</kbd> Template verwenden, mit dem wir eine Datei 
         
     return "Files uploaded successfully"
 ```
-### Uploading multiple files
 
 
-### Sending files as attachment
+### Connect SQLite database
 
 23. Now, lets see on how to send files as attachments. Inorder to send files as attachment we will be using <kbd>send_from_directory()</kbd> function in Flask.
 
@@ -211,13 +167,3 @@ wir werden ein <kbd>index.html</kbd> Template verwenden, mit dem wir eine Datei 
   </a>
 </p>
 
-## Contributors:
-<a href="https://github.com/ASHIK11ab">
-  <img style="border-radius: 50px" src="https://avatars2.githubusercontent.com/u/58099865?s=460&u=dc835e2281a9265edf2b48059f1c8151be89a1b1&v=4" width="70px" height = "70px"> 
-</a> 
-
-[Ashik Meeran Mohideen](https://github.com/ASHIK11ab)
-
-&copy; copyrights 2020. All rights reserved.
-
-Licensed under [MIT LICENSE](https://github.com/ASHIK11ab/Flask-Series/blob/main/LICENSE)
