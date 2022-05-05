@@ -79,7 +79,7 @@ wir werden ein <kbd>index.html</kbd> Template verwenden, mit dem wir eine Datei 
   
     return render_template('index.html')
 ```
-1. uploading single file
+- Standardmäßig antwortet die Flask-Route auf GET-Anforderungen. Sie können diese Einstellung jedoch ändern, indem Sie Methodenparameter für den route()-Decorator bereitstellen.
 
 - <kbd>index.html</kbd> Template
 
@@ -106,64 +106,89 @@ wir werden ein <kbd>index.html</kbd> Template verwenden, mit dem wir eine Datei 
 
 > Das obige Programm erstellt eine HTML-Datei 
 > =>definiert ein Dateiauswahlfeld und eine "Durchsuchen"-Schaltfläche für Datei-Uploads.
+```python
+  action="/" method="post" enctype="multipart/form-data"
+```
+> das ist ein Codierungstyp, mit dem Dateien über einen POST gesendet werden können . Ganz einfach, ohne diese Codierung können die Dateien nicht über POST gesendet werden . 
+> >Wenn Sie einem Benutzer erlauben möchten, eine Datei über ein Formular hochzuladen, müssen Sie diesen Enctype verwenden.
 
 22. Zusammenfassend für das uploading mehrerer Dateien sollte unsere <kbd>/</kbd>-Route so aussehen.
 ```python
-  @app.route('/', methods=["GET", "POST"])
-  def index():
-    if request.method == "GET":
-      return render_template('index.html')
-    
-    if not 'file' in request.files:
-      flash('No file part in request')
-      return redirect(request.url)
 
-    files = request.files.getlist('file')
+  from flask import Flask, request, render_template, redirect, flash
+from models import Schema
+
+
+app = Flask(__name__) #__main__
+
+@app.route("/")
+def hellopexonian():
+    return "Hello Pexonian, trage hier deine Zertifizierungen ein! "
+
+
+@app.route('/', methods=["GET", "POST"]) #route for uploading file
+def index():
+    if request.method == "GET":
+        return render_template('index.html')
+
+    if not 'file' in request.files:
+        flash('No file part in request')  #No file part in request
+        return redirect(request.url)
+
+    files = request.files.getlist('file')  #list for uploading multiple files
 
     for file in files:
-      if file.filename == '':
-        flash('No file uploaded')
-        return redirect(request.url)
+        if file.filename == '':
+            flash('No file uploaded')  #No file uploaded'
+            return redirect(request.url)
+        else:
+            flash('File type not supported')
+            return redirect(request.url)
 
-      if file_valid(file.filename):
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOADS_FOLDER'], filename))
-      else:
-        flash('File type not supported')
-        return redirect(request.url)
-        
     return "Files uploaded successfully"
+
+if __name__ == "__main__":
+    Schema()
+    app.run(debug = True)
+
 ```
 
+```python
+ @app.route('/', methods=["GET", "POST"])
+```
+- GET: ruft daten vom server ab.
+- Post: sendet daten an den server zum erstellen einer Neuen Entität. 
+- PUT: ähnlich wie post wird aber verwendet um eine vorhandene Entität zu ersetzen.
+> By default, the Flask route responds to GET requests.However, you can change this preference by providing method parameters for the route () decorator.
+
+> Um sowohl GET- als auch POST-Anforderungen zu verarbeiten, fügen wir dies in der Methode decoder app.route() hinzu. Was auch immer Sie wünschen, Sie ändern es im decode.
 
 ### Connect SQLite database
-
-23. Now, lets see on how to send files as attachments. Inorder to send files as attachment we will be using <kbd>send_from_directory()</kbd> function in Flask.
-
-24. Whenever the user goes into <kbd>/uploads/images/\<filename></kbd> we want to send the file as a attachment.
+- SQLite funktioniert gut mit Python, da die Python-Standardbibliothek das sqlite3-Modul bereitstellt, mit dem Sie mit jeder SQLite-Datenbank interagieren können, ohne etwas installieren zu müssen. Die Verwendung von SQLite mit Python erfordert im Vergleich zu anderen Datenbank-Engines auch eine minimale Einrichtung.
+  
 ```python
-  @app.route('/uploads/images/<path:filename>')
-  def send_attachment(filename):
-    return send_from_directory(app.config['UPLOADS_FOLDER'], 
-      filename = filename, as_attachment = True)
+  import sqlite3  #sqlite importiere
+
+class Schema: #class
+    def __init__(self): #init function
+        self.conn = sqlite3.connect('Bewerbung') #db datei in sqlite
+        self.create_todo_table()   #funktion aufrufen
+
+    def create_todo_table(self): #Function
+        query = """
+            CREATE TABLE IF NOT EXISTS "Bewerbung" (
+                id INTEGER PRIMARY KEY,
+                Title TEXT,
+                Description TEXT            
+            );
+        """          #tabelle in sql erstellen
+
+        self.conn.execute(query) #querry ausführen
 ```
-> - The <kbd>path</kbd> is a URL converter in Flask. Which is used to get the entire path in the URL which comes after /uploads/images/
+- wir verwenden das sqlite3, um mit der Datenbank zu interagieren, die in der standardmäßigen Python-Bibliothek verfügbar ist.
 
-25. Thats all it takes to send attachments in Flask. We just need the filename and the directory from where we are going to send the file.
+- Daten in SQLite werden in Tabellen und Spalten gespeichert, daher müssen wir zuerst eine Tabelle namens mit den erforderlichen columns erstellen. Sie erstellen eine sql.file, die SQL commands enthält, um die Beitragstabelle mit einigen columns zu erstellen. Anschließend verwenden wir diese Schemadatei, um die Datenbank zu erstellen.
 
-- We have come to the end of this episode. Hope you learnt something new. If you have any queries just raise an issue.
-- To see the YouTube demonstration of this episode [click here](https://youtu.be/Bj4cjo5R_6s).
+- In Schema löschen wir zunächst die Posts-Tabelle, falls sie bereits vorhanden ist. Dies vermeidet die Möglichkeit, dass eine weitere Tabelle mit dem Namen posts existiert, was zu verwirrendem Verhalten führen könnte (z. B. wenn sie unterschiedliche Spalten hat).
 
-[[**Back to top**](#files-in-flask)]
-
-<p align="right">
-  <a href="https://github.com/ASHIK11ab/Flask-Series/tree/todo-list-app-part2">
-    <strong><--Prev</strong>
-  </a>
-</p>
-<p align="right">
-  <a href="https://github.com/ASHIK11ab/Flask-Series/tree/OAuth-implementation">
-    <strong>Next--></strong>
-  </a>
-</p>
 
